@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.8)
-project(TestProject)
+cmake_minimum_required(VERSION 3.5)
+project(Opengl-GLFW)
 
 
 set(SOURCE_FILES main.cpp glad.c shader.h shader.cpp stb_image.h stb_image.cpp camera.h)
-add_executable(TestProject ${SOURCE_FILES})
+add_executable(Opengl-GLFW ${SOURCE_FILES})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 

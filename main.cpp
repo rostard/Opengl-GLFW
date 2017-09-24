@@ -11,6 +11,8 @@
 #include "shader.h"
 #include "camera.h"
 
+
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -40,8 +42,26 @@ glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 float mix =0.0f;
 bool wires = false;
 
-int main()
+int getLastSlash(char **argv){
+    int len = strlen(argv[0]);
+    for (int i = len-1;;i--){
+        if (argv[0][i]=='/' || argv[0][i]=='\\'){
+            return i;
+        }
+    }
+
+    std::cout<<argv[0]<<std::endl<<argv[0];
+}
+
+int main(int argc, char** argv)
 {
+    int l = getLastSlash(argv);
+    char path[l];
+    for(int i=0; i<=l;i++){
+        path[i] = argv[0][i];
+    }
+
+    std::string Path(path);
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -75,8 +95,10 @@ int main()
     }
 
     // build and compile our shader program
-    Shader* lightingShader = new Shader("/home/rostard/CLionProjects/TestProject/shaders/colors.vs.glsl", "/home/rostard/CLionProjects/TestProject/shaders/colors.fs.glsl");
-    Shader* lampShader = new Shader("/home/rostard/CLionProjects/TestProject/shaders/lamp.vs.glsl", "/home/rostard/CLionProjects/TestProject/shaders/lamp.fs.glsl");
+    //std::cout<<Path.append(std::string("shaders/colors.vs.glsl")).c_str()<<std::endl
+            ;
+    Shader* lightingShader = new Shader((Path + "shaders/colors.vs.glsl").c_str(), (Path + "shaders/colors.fs.glsl").c_str());
+    Shader* lampShader = new Shader((Path + "shaders/lamp.vs.glsl").c_str(), (Path + "shaders/lamp.fs.glsl").c_str());
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
@@ -139,7 +161,6 @@ int main()
             glm::vec3( 1.5f,  0.2f, -1.5f),
             glm::vec3(-1.3f,  1.0f, -1.5f)
     };
-
     unsigned int VBO, boxVAO;
     glGenVertexArrays(1, &boxVAO);
     glGenBuffers(1, &VBO);
@@ -175,9 +196,9 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    unsigned int diffuseMap = loadTexture("/home/rostard/CLionProjects/TestProject/container2.png");
-    unsigned int specularMap = loadTexture("/home/rostard/CLionProjects/TestProject/container2_specular.png");
-    unsigned int emmitionMap = loadTexture("/home/rostard/CLionProjects/TestProject/matrix.jpg");
+    unsigned int diffuseMap = loadTexture((Path + "resources/container2.png").c_str());
+    unsigned int specularMap = loadTexture((Path + "resources/container2_specular.png").c_str());
+    unsigned int emmitionMap = loadTexture((Path + "resources/matrix.jpg").c_str());
 
 
     glActiveTexture(GL_TEXTURE0);
