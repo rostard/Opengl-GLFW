@@ -37,7 +37,7 @@ Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath) {
 
     unsigned int vertex, fragment;
     int success;
-    char infoLog[512];
+    char infoLog[1024];
 
     // vertex Shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -47,7 +47,7 @@ Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath) {
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if(!success)
     {
-        glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+        glGetShaderInfoLog(vertex, 1024, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     };
 
