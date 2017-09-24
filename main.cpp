@@ -10,7 +10,7 @@
 #include "stb_image.h"
 #include "shader.h"
 #include "camera.h"
-
+#include "configuration/root_directory.h"
 
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -42,26 +42,10 @@ glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 float mix =0.0f;
 bool wires = false;
 
-int getLastSlash(char **argv){
-    int len = strlen(argv[0]);
-    for (int i = len-1;;i--){
-        if (argv[0][i]=='/' || argv[0][i]=='\\'){
-            return i;
-        }
-    }
-
-    std::cout<<argv[0]<<std::endl<<argv[0];
-}
-
 int main(int argc, char** argv)
 {
-    int l = getLastSlash(argv);
-    char path[l];
-    for(int i=0; i<=l;i++){
-        path[i] = argv[0][i];
-    }
-
-    std::string Path(path);
+    std::string Path(logl_root);
+    Path.append("/");
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
