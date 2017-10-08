@@ -76,3 +76,5 @@ CMakeFiles/Progress/4
 CMakeFiles/Progress/5
 CMakeFiles/Progress/count.txt
 CMakeFiles/Opengl-GLFW.dir/mesh.cpp.o
+*.o
+*.cmake

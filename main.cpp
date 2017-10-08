@@ -11,7 +11,7 @@
 #include "shader.h"
 #include "camera.h"
 #include "configuration/root_directory.h"
-
+#include "model.h"
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -132,7 +132,8 @@ int main(int argc, char** argv)
             -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
-    
+    Model Mmodel("resources/nanosuit/nanosuit.obj");
+
     glm::vec3 cubePositions[] = {
             glm::vec3( 0.0f,  0.0f,  0.0f),
             glm::vec3( 2.0f,  5.0f, -15.0f),
@@ -222,8 +223,7 @@ int main(int argc, char** argv)
         //lightingShader->setInt("material.emmit", 2);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, emmitionMap);
+
         lightingShader->setFloat("material.shininess", 64.0f);
 
         lightingShader->setVec3("dirLight.ambient",  0.2f, 0.2f, 0.2f);
@@ -293,26 +293,31 @@ int main(int argc, char** argv)
         lightingShader->setMat4("projection", projection);
         lightingShader->setMat4("view", view);
 
-
         glm::mat4 model;
         // render the cube
         glBindVertexArray(boxVAO);
-        for (unsigned int i = 0; i<10;i++){
-            // world transformation
-            model = glm::translate(glm::mat4(), cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            lightingShader->setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+//        for (unsigned int i = 0; i<10;i++){
+//            // world transformation
+//            model = glm::translate(glm::mat4(), cubePositions[i]);
+//            float angle = 20.0f * i;
+//            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+//            lightingShader->setMat4("model", model);
+//            glDrawArrays(GL_TRIANGLES, 0, 36);
+//
+//        }
 
-        }
+        model = glm::mat4(0.1);
 
+        lightingShader->setMat4("model", model);
+        Mmodel.Draw(*lightingShader);
 
         // also draw the lamp object
         lampShader->use();
 
         lampShader->setMat4("projection", projection);
         lampShader->setMat4("view", view);
+
+
 
         glBindVertexArray(lightVAO);
 
