@@ -48,6 +48,7 @@ void Mesh::Draw(Shader shader) {
         ss << textures[i].id;
         string name = textures[i].type;
         string num;
+
         if(name == "texture_diffuse")
             ss << diffuseNr++;
         else if(name == "texture_specular")
