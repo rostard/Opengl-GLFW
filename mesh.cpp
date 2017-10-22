@@ -40,12 +40,13 @@ void Mesh::setupMesh() {
 void Mesh::Draw(Shader shader) {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
+    unsigned int reflectNr = 1;
 
     for (unsigned int i = 0; i < textures.size(); i++){
         glActiveTexture(GL_TEXTURE0+i);
 
         stringstream ss;
-        ss << textures[i].id;
+       // ss << textures[i].id;
         string name = textures[i].type;
         string num;
 
@@ -53,8 +54,11 @@ void Mesh::Draw(Shader shader) {
             ss << diffuseNr++;
         else if(name == "texture_specular")
             ss << specularNr++;
+        else if(name == "texture_reflection")
+            ss << reflectNr++;
         num = ss.str();
 
+        //cerr<<"material." + name + num<<"\t"<<i<<endl;
         shader.setInt(("material." + name + num).c_str(), i);
 
         glBindTexture(GL_TEXTURE_2D, textures[i].id);

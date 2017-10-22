@@ -1,10 +1,11 @@
 #version 330 core
-out vec4 FragColor;
+//out vec4 FragColor;
 
 struct Material{
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
     sampler2D emmit;
+    sampler2D texture_reflection1;
     float shininess;
 };
 
@@ -55,6 +56,8 @@ uniform SpotLight spotLight;
 
 uniform Material material;
 uniform vec3 viewPos;
+
+uniform samplerCube skybox;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir){
 
@@ -134,5 +137,14 @@ void main()
     }
     result += CalcSpotLight(spotLight, norm, viewDir);
 
-    FragColor = vec4(result, 1.0);
+    vec3 I = normalize(viewPos-FragPos);
+    vec3 R = reflect(I, normalize(Normal));
+    vec3 reflectColor = vec3(texture(skybox, R));
+    float intensity = texture(material.texture_reflection1, TexCoords).b;
+    if(intensity > 0.1)result += reflectColor * intensity;
+    //result = reflectColor;
+    //result = texture(material.texture_reflection1, TexCoords).r;
+   // gl_FragColor[3] =1.0;
+
+    gl_FragColor = vec4(result, 1.0);
 }
