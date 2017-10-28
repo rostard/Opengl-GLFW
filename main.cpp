@@ -83,6 +83,7 @@ int main(int argc, char** argv)
     Shader* lampShader = &ResourceManager::LoadShader("shaders/lamp.vs.glsl", "shaders/lamp.fs.glsl", nullptr, "lamp");
     Shader* plainShader = &ResourceManager::LoadShader("shaders/plain.vs.glsl", "shaders/plain.fs.glsl", nullptr,"plain");
     Shader* skyboxShader = &ResourceManager::LoadShader("shaders/skybox.vs.glsl", "shaders/skybox.fs.glsl", nullptr, "skybox");
+    Shader* normalsShader = &ResourceManager::LoadShader("shaders/normals.vs.glsl", "shaders/normals.fs.glsl", "shaders/normals.gs.glsl", "normals");
      // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
@@ -324,7 +325,7 @@ int main(int argc, char** argv)
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+//        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -435,17 +436,25 @@ int main(int argc, char** argv)
 
         lightingShader->setMat4("projection", projection);
         lightingShader->setMat4("view", view);
+
+
         lightingShader->setFloat("time", currentFrame);
 
         model = glm::mat4(0.1);
 
         lightingShader->setMat4("model", model);
+
         glEnable(GL_DEPTH_TEST);
         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should update the stencil buffer
         glStencilMask(0xFF); // enable writing to the stencil buffer
 
         Model.Draw(*lightingShader);
+        normalsShader->use();
+        normalsShader->setMat4("view", view);
+        normalsShader->setMat4("projection", projection);
+        normalsShader->setMat4("model", model);
+        Model.Draw(*normalsShader);
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00); // disable writing to the stencil buffer
         //glDisable(GL_DEPTH_TEST);
@@ -474,14 +483,14 @@ int main(int argc, char** argv)
         glDepthFunc(GL_LESS);
         //glDepthMask(GL_TRUE);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        plainShader->use();
-        glBindVertexArray(plainVAO);
-        glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-        glDrawArrays(GL_TRIANGLES,0,6);
+//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//        plainShader->use();
+//        glBindVertexArray(plainVAO);
+//        glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+//        glDrawArrays(GL_TRIANGLES,0,6);
 
         font.RenderText( "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
         font.RenderText( "(Another text)", 540.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
