@@ -13,14 +13,12 @@
 #include "configuration/root_directory.h"
 #include "model.h"
 #include <ft2build.h>
-#include FT_FREETYPE_H
 #include "font.h"
 
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
-unsigned int loadTexture(char const * path);
 unsigned int loadCubemap(vector<std::string> faces );
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -36,8 +34,6 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 // other
 float mix =0.0f;
@@ -82,21 +78,21 @@ int main(int argc, char** argv)
     }
 
     // build and compile our shader program
-    Shader* simpleShader = new Shader((Path + "shaders/simple.vs.glsl").c_str(),(Path + "shaders/simple.fs.glsl").c_str());
-    Shader* lightingShader = new Shader((Path + "shaders/colors.vs.glsl").c_str(), (Path + "shaders/colors.fs.glsl").c_str());
-    Shader* lampShader = new Shader((Path + "shaders/lamp.vs.glsl").c_str(), (Path + "shaders/lamp.fs.glsl").c_str());
-    Shader* plainShader = new Shader((Path + "shaders/plain.vs.glsl").c_str(),(Path+"shaders/plain.fs.glsl").c_str());
-    Shader* skyboxShader = new Shader((Path + "shaders/skybox.vs.glsl").c_str(),(Path+"shaders/skybox.fs.glsl").c_str());
-    // set up vertex data (and buffer(s)) and configure vertex attributes
+    Shader* simpleShader = &ResourceManager::LoadShader("shaders/simple.vs.glsl","shaders/simple.fs.glsl", nullptr, "simple");//new Shader((Path + "shaders/simple.vs.glsl").c_str(),(Path + "shaders/simple.fs.glsl").c_str());
+    Shader* lightingShader = &ResourceManager::LoadShader("shaders/colors.vs.glsl", "shaders/colors.fs.glsl", nullptr, "colors");
+    Shader* lampShader = &ResourceManager::LoadShader("shaders/lamp.vs.glsl", "shaders/lamp.fs.glsl", nullptr, "lamp");
+    Shader* plainShader = &ResourceManager::LoadShader("shaders/plain.vs.glsl", "shaders/plain.fs.glsl", nullptr,"plain");
+    Shader* skyboxShader = &ResourceManager::LoadShader("shaders/skybox.vs.glsl", "shaders/skybox.fs.glsl", nullptr, "skybox");
+     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
     float plainVertices[] = {
             -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
             -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f
+            1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 0.0f, 1.0f, 0.0f
     };
 
     float vertices[] = {
@@ -189,6 +185,26 @@ int main(int argc, char** argv)
             1.0f, -1.0f,  1.0f
     };
 
+    float points[] = {
+            -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
+            0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
+            0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
+            -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
+    };
+
+    unsigned int pointsVBO, pointsVAO;
+    glGenVertexArrays(1, &pointsVAO);
+    glGenBuffers(1, &pointsVBO);
+    glBindVertexArray(pointsVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, pointsVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+
     Model Model("resources/nanosuit/nanosuit.obj");
 
 
@@ -200,14 +216,14 @@ int main(int argc, char** argv)
     };
 
     vector<std::string> faces
-    {
-        "resources/skybox/violentdays_rt.tga",
-        "resources/skybox/violentdays_lf.tga",
-        "resources/skybox/violentdays_up.tga",
-        "resources/skybox/violentdays_dn.tga",
-        "resources/skybox/violentdays_bk.tga",
-        "resources/skybox/violentdays_ft.tga"
-    };
+            {
+                    "resources/skybox/violentdays_rt.tga",
+                    "resources/skybox/violentdays_lf.tga",
+                    "resources/skybox/violentdays_up.tga",
+                    "resources/skybox/violentdays_dn.tga",
+                    "resources/skybox/violentdays_bk.tga",
+                    "resources/skybox/violentdays_ft.tga"
+            };
     unsigned int cubemapTexture = loadCubemap(faces);
     unsigned int cubemapVBO, cubemapVAO;
     glGenVertexArrays(1, &cubemapVAO);
@@ -270,9 +286,6 @@ int main(int argc, char** argv)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    unsigned int diffuseMap = loadTexture((Path + "resources/container2.png").c_str());
-    unsigned int specularMap = loadTexture((Path + "resources/container2_specular.png").c_str());
-    unsigned int emmitionMap = loadTexture((Path + "resources/matrix.jpg").c_str());
 
     unsigned int FBO;
     glGenFramebuffers(1,&FBO);
@@ -286,7 +299,7 @@ int main(int argc, char** argv)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    
+
     glBindTexture(GL_TEXTURE_2D, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
@@ -300,14 +313,11 @@ int main(int argc, char** argv)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseMap);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
 
     Font font("fonts/arial.ttf");
     // render loop
@@ -333,10 +343,7 @@ int main(int argc, char** argv)
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
 
-
-        view = camera.GetViewMatrix();
-
-        // also draw the lamp object
+  // also draw the lamp object
 
 
         lampShader->use();
@@ -366,9 +373,7 @@ int main(int argc, char** argv)
         lightingShader->setInt("material.diffuse", 0);
         lightingShader->setInt("material.specular", 1);
         lightingShader->setInt("material.reflect", 2);
-        //lightingShader->setInt("material.emmit", 2);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+
 
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
@@ -430,7 +435,7 @@ int main(int argc, char** argv)
 
         lightingShader->setMat4("projection", projection);
         lightingShader->setMat4("view", view);
-
+        lightingShader->setFloat("time", currentFrame);
 
         model = glm::mat4(0.1);
 
@@ -555,44 +560,6 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     camera.ProcessMouseMovement(Xoffset, Yoffset);
 }
 
-// utility function for loading a 2D texture from file
-// ---------------------------------------------------
-unsigned int loadTexture(char const * path)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    int width, height, nrComponents;
-    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
-
-    return textureID;
-}
 
 unsigned int loadCubemap(vector<std::string> faces ){
     unsigned int textureID;

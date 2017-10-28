@@ -13,6 +13,7 @@
 
 
 #include "shader.h"
+#include "resource_manager.h"
 
 
 struct Character{
@@ -25,20 +26,19 @@ struct Character{
 class Font{
 public:
     Font(){
-        shader = new Shader("shaders/font.vs.glsl", "shaders/font.fs.glsl");
+        shader = &ResourceManager::LoadShader("shaders/font.vs.glsl", "shaders/font.fs.glsl", nullptr, "font");
         InitBuffers();
     }
     Font(const char* filename){
-        shader = new Shader("shaders/font.vs.glsl", "shaders/font.fs.glsl");
+        shader = &ResourceManager::LoadShader("shaders/font.vs.glsl", "shaders/font.fs.glsl", nullptr, "font");
         LoadFont(filename);
         InitBuffers();
     }
     ~Font(){
-        delete(shader);
     }
     void LoadShader(const char* vertexShader, const char* fragmentShader){
         if(shader != NULL)delete(shader);
-        shader = new Shader(vertexShader, fragmentShader);
+        shader = &ResourceManager::LoadShader(vertexShader, fragmentShader, nullptr, "font");
     }
     void LoadFont(const char* filename);
     void InitBuffers();

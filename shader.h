@@ -19,9 +19,11 @@ public:
     unsigned int ID;
 
     // constructor reads and builds the shader
-    Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+    Shader() = default;
     // use/activate the shader
-    void use();
+    Shader& use();
+
+    void    Compile(const GLchar *vertexSource, const GLchar *fragmentSource, const GLchar *geometrySource = nullptr);
     // utility uniform functions
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;
@@ -29,6 +31,9 @@ public:
     void setVec3(const std::string &name, glm::vec3 vector) const;
     void setVec3(const std::string &name, float x, float y, float z) const;
     void setMat4(const std::string &name, glm::mat4 matrix) const;
+private:
+    void CheckCompileErrors(GLuint object, std::string type);
+
 };
 
 #endif //TESTPROJECT_SHADER_H
