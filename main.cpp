@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 
     // build and compile our shader program
     Shader* simpleShader = &ResourceManager::LoadShader("shaders/simple.vs.glsl","shaders/simple.fs.glsl", nullptr, "simple");//new Shader((Path + "shaders/simple.vs.glsl").c_str(),(Path + "shaders/simple.fs.glsl").c_str());
-    Shader* lightingShader = &ResourceManager::LoadShader("shaders/colors.vs.glsl", "shaders/colors.fs.glsl", nullptr, "colors");
+    Shader* lightingShader = &ResourceManager::LoadShader("shaders/colors.vs.glsl", "shaders/colors.fs.glsl", "shaders/colors.gs.glsl", "colors");
     Shader* lampShader = &ResourceManager::LoadShader("shaders/lamp.vs.glsl", "shaders/lamp.fs.glsl", nullptr, "lamp");
     Shader* plainShader = &ResourceManager::LoadShader("shaders/plain.vs.glsl", "shaders/plain.fs.glsl", nullptr,"plain");
     Shader* skyboxShader = &ResourceManager::LoadShader("shaders/skybox.vs.glsl", "shaders/skybox.fs.glsl", nullptr, "skybox");
