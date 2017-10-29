@@ -205,8 +205,9 @@ int main(int argc, char** argv)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
 
-
-    Model Model("resources/nanosuit/nanosuit.obj");
+    Model planet("resources/planet/planet.obj");
+    Model rock("resources/rock/rock.obj");
+    Model crysis_suit("resources/nanosuit/nanosuit.obj");
 
 
     glm::vec3 pointLightPositions[] = {
@@ -319,6 +320,38 @@ int main(int argc, char** argv)
 
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+
+    int amount = 1000;
+    glm::mat4 modelMatrices[amount];
+    srand(glfwGetTime());
+    float radius = 50.0f;
+    float offset = 2.5f;
+    for(unsigned int i = 0; i< amount; i++){
+        glm::mat4 model;
+        float angle = (float)i/ float(amount) * 360.0f;
+
+        // 1. position
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+        model = glm::translate(model, glm::vec3(x, y, z));
+
+
+        // 2. scale: Scale between 0.05 and 0.25f
+        float scale = (rand() % 20) / 100.0f + 0.05;
+        model = glm::scale(model, glm::vec3(scale));
+
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = (rand() % 360);
+        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+
+        modelMatrices[i] = model;
+    }
+
 
     Font font("fonts/arial.ttf");
     // render loop
@@ -440,21 +473,35 @@ int main(int argc, char** argv)
 
         lightingShader->setFloat("time", currentFrame);
 
-        model = glm::mat4(0.1);
+        model = glm::mat4();
 
-        lightingShader->setMat4("model", model);
 
         glEnable(GL_DEPTH_TEST);
         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should update the stencil buffer
         glStencilMask(0xFF); // enable writing to the stencil buffer
 
-        Model.Draw(*lightingShader);
-        normalsShader->use();
-        normalsShader->setMat4("view", view);
-        normalsShader->setMat4("projection", projection);
-        normalsShader->setMat4("model", model);
-        Model.Draw(*normalsShader);
+
+        model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+        lightingShader->setMat4("model", model);
+        planet.Draw(*lightingShader);
+
+        // draw meteorites
+        for(unsigned int i = 0; i < amount; i++)
+        {
+            lightingShader->setMat4("model", modelMatrices[i]);
+            rock.Draw(*lightingShader);
+        }
+
+//        crysis_suit.Draw(*lightingShader);
+//        normalsShader->use();
+//        normalsShader->setMat4("view", view);
+//        normalsShader->setMat4("projection", projection);
+//        normalsShader->setMat4("model", model);
+//        crysis_suit.Draw(*normalsShader);
+
+
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00); // disable writing to the stencil buffer
         //glDisable(GL_DEPTH_TEST);
@@ -464,7 +511,7 @@ int main(int argc, char** argv)
         simpleShader->setMat4("projection", projection);
         simpleShader->setMat4("view", view);
 
-        //Model.Draw(*simpleShader);
+        //crysis_suit.Draw(*simpleShader);
         glEnable(GL_DEPTH_TEST);
         glStencilMask(0xFF);
         glDisable(GL_STENCIL_TEST);
