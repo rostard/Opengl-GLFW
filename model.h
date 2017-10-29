@@ -18,9 +18,10 @@ public:
         loadModel(path);
     }
     void Draw(Shader shader);
+    vector<Mesh> meshes;
 private:
     vector<Texture> textures_loaded;
-    vector<Mesh> meshes;
+
     string directory;
 
     void loadModel(string path);

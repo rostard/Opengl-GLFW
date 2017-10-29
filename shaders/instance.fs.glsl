@@ -125,23 +125,6 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 viewDir){
 
 void main()
 {
-    vec3 result = vec3(0.0);
 
-    vec3 norm = normalize(Normal);
-    vec3 viewDir = normalize(viewPos - FragPos);
-
-    result += CalcDirLight(dirLight, norm, viewDir);
-
-    for(int i=0; i<NR_POINT_LIGHTS; i++){
-        result += CalcPointLight(pointLights[i], norm, viewDir);
-    }
-    result += CalcSpotLight(spotLight, norm, viewDir);
-
-    vec3 I = normalize(viewPos-FragPos);
-    vec3 R = reflect(I, normalize(Normal));
-    vec3 reflectColor = vec3(texture(skybox, R));
-    float intensity = texture(material.texture_reflection1, TexCoords).b;
-    if(intensity > 0.1)result += reflectColor * intensity;
-
-    gl_FragColor = vec4(result, 1.0);
+    gl_FragColor = texture(material.texture_diffuse1, TexCoords);
 }

@@ -84,6 +84,7 @@ int main(int argc, char** argv)
     Shader* plainShader = &ResourceManager::LoadShader("shaders/plain.vs.glsl", "shaders/plain.fs.glsl", nullptr,"plain");
     Shader* skyboxShader = &ResourceManager::LoadShader("shaders/skybox.vs.glsl", "shaders/skybox.fs.glsl", nullptr, "skybox");
     Shader* normalsShader = &ResourceManager::LoadShader("shaders/normals.vs.glsl", "shaders/normals.fs.glsl", "shaders/normals.gs.glsl", "normals");
+    Shader* instanceShader = &ResourceManager::LoadShader("shaders/instance.vs.glsl", "shaders/instance.fs.glsl", nullptr, "instance");
      // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
@@ -322,7 +323,7 @@ int main(int argc, char** argv)
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 
-    int amount = 1000;
+    int amount = 10000;
     glm::mat4 modelMatrices[amount];
     srand(glfwGetTime());
     float radius = 50.0f;
@@ -352,6 +353,29 @@ int main(int argc, char** argv)
         modelMatrices[i] = model;
     }
 
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), modelMatrices, GL_STATIC_DRAW);
+
+    for(unsigned int i=0; i<rock.meshes.size(); i++){
+        glBindVertexArray(rock.meshes[i].VAO);
+        GLsizei vec4Size = sizeof(glm::vec4);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, 0);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(vec4Size));
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+        glEnableVertexAttribArray(6);
+
+        glVertexAttribDivisor(3,1);
+        glVertexAttribDivisor(4,1);
+        glVertexAttribDivisor(5,1);
+        glVertexAttribDivisor(6,1);
+        glBindVertexArray(0);
+    }
 
     Font font("fonts/arial.ttf");
     // render loop
@@ -487,13 +511,23 @@ int main(int argc, char** argv)
         lightingShader->setMat4("model", model);
         planet.Draw(*lightingShader);
 
-        // draw meteorites
-        for(unsigned int i = 0; i < amount; i++)
-        {
-            lightingShader->setMat4("model", modelMatrices[i]);
-            rock.Draw(*lightingShader);
-        }
+//        // draw meteorites
+//        for(unsigned int i = 0; i < amount; i++)
+//        {
+//            lightingShader->setMat4("model", modelMatrices[i]);
+//            rock.Draw(*lightingShader);
+//        }
+        instanceShader->use();
 
+        instanceShader->setMat4("projection", projection);
+        instanceShader->setMat4("view", view);
+        for(unsigned int i = 0; i < rock.meshes.size(); i++)
+        {
+            glBindVertexArray(rock.meshes[i].VAO);
+            glDrawElementsInstanced(
+                    GL_TRIANGLES, rock.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount
+            );
+        }
 //        crysis_suit.Draw(*lightingShader);
 //        normalsShader->use();
 //        normalsShader->setMat4("view", view);
