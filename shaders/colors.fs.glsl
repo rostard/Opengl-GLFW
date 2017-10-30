@@ -56,7 +56,7 @@ uniform SpotLight spotLight;
 
 uniform Material material;
 uniform vec3 viewPos;
-
+uniform bool blinn;
 uniform samplerCube skybox;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir){
@@ -64,9 +64,16 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir){
     vec3 lightDir = normalize(-light.direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(reflectDir, viewDir), 0.0), material.shininess);
+    float spec;
+    if(blinn){
+        vec3 halfwayDir = normalize(lightDir + viewDir);
+        spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 
+    }
+    else{
+        vec3 reflectDir = reflect(-lightDir, normal);
+        spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    }
     vec3 ambient = light.ambient * texture(material.texture_diffuse1, TexCoords).rgb;
     vec3 diffuse = light.diffuse * diff * texture(material.texture_diffuse1, TexCoords).rgb;
     vec3 specular = light.specular * spec * texture(material.texture_specular1, TexCoords).rgb;
@@ -78,9 +85,16 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 viewDir){
     vec3 lightDir = normalize(light.position - FragPos);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(reflectDir, viewDir), 0.0), material.shininess);
+    float spec;
+    if(blinn){
+        vec3 halfwayDir = normalize(lightDir + viewDir);
+        spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 
+    }
+    else{
+        vec3 reflectDir = reflect(-lightDir, normal);
+        spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    }
 
     float distance    = length(light.position - FragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
@@ -101,9 +115,17 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 viewDir){
     vec3 lightDir = normalize(light.position - FragPos);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(reflectDir, viewDir), 0.0), material.shininess);
 
+    float spec;
+    if(blinn){
+        vec3 halfwayDir = normalize(lightDir + viewDir);
+        spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
+
+    }
+    else{
+        vec3 reflectDir = reflect(-lightDir, normal);
+        spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    }
 
     float distance    = length(light.position - FragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));

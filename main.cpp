@@ -38,7 +38,8 @@ float lastFrame = 0.0f;
 // other
 float mix =0.0f;
 bool wires = false;
-
+bool blinn = false;
+bool gammaCorection = false;
 int main(int argc, char** argv)
 {
 
@@ -206,10 +207,7 @@ int main(int argc, char** argv)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
 
-    Model planet("resources/planet/planet.obj");
-    Model rock("resources/rock/rock.obj");
     Model crysis_suit("resources/nanosuit/nanosuit.obj");
-
 
     glm::vec3 pointLightPositions[] = {
             glm::vec3( 0.7f,  0.2f,  2.0f),
@@ -322,61 +320,6 @@ int main(int argc, char** argv)
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-
-    int amount = 10000;
-    glm::mat4 modelMatrices[amount];
-    srand(glfwGetTime());
-    float radius = 50.0f;
-    float offset = 2.5f;
-    for(unsigned int i = 0; i< amount; i++){
-        glm::mat4 model;
-        float angle = (float)i/ float(amount) * 360.0f;
-
-        // 1. position
-        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float x = sin(angle) * radius + displacement;
-        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float y = displacement * 0.4f;
-        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-        float z = cos(angle) * radius + displacement;
-        model = glm::translate(model, glm::vec3(x, y, z));
-
-
-        // 2. scale: Scale between 0.05 and 0.25f
-        float scale = (rand() % 20) / 100.0f + 0.05;
-        model = glm::scale(model, glm::vec3(scale));
-
-        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-        float rotAngle = (rand() % 360);
-        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
-
-        modelMatrices[i] = model;
-    }
-
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), modelMatrices, GL_STATIC_DRAW);
-
-    for(unsigned int i=0; i<rock.meshes.size(); i++){
-        glBindVertexArray(rock.meshes[i].VAO);
-        GLsizei vec4Size = sizeof(glm::vec4);
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, 0);
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(vec4Size));
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
-        glEnableVertexAttribArray(5);
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
-        glEnableVertexAttribArray(6);
-
-        glVertexAttribDivisor(3,1);
-        glVertexAttribDivisor(4,1);
-        glVertexAttribDivisor(5,1);
-        glVertexAttribDivisor(6,1);
-        glBindVertexArray(0);
-    }
-
     Font font("fonts/arial.ttf");
     // render loop
     // -----------
@@ -443,37 +386,18 @@ int main(int argc, char** argv)
         lightingShader->setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
         lightingShader->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
 
-        lightingShader->setVec3("pointLights[0].position", pointLightPositions[0]);
-        lightingShader->setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-        lightingShader->setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.8f);
-        lightingShader->setVec3("pointLights[0].specular", 0.0f, 0.0f, 1.0f);
-        lightingShader->setFloat("pointLights[0].constant", 1.0f);
-        lightingShader->setFloat("pointLights[0].linear", 0.09);
-        lightingShader->setFloat("pointLights[0].quadratic", 0.032);
-        // point light 2
-        lightingShader->setVec3("pointLights[1].position", pointLightPositions[1]);
-        lightingShader->setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-        lightingShader->setVec3("pointLights[1].diffuse", 0.0f, 0.0f, 0.8f);
-        lightingShader->setVec3("pointLights[1].specular", 0.0f, 0.0f, 1.0f);
-        lightingShader->setFloat("pointLights[1].constant", 1.0f);
-        lightingShader->setFloat("pointLights[1].linear", 0.09);
-        lightingShader->setFloat("pointLights[1].quadratic", 0.032);
-        // point light 3
-        lightingShader->setVec3("pointLights[2].position", pointLightPositions[2]);
-        lightingShader->setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-        lightingShader->setVec3("pointLights[2].diffuse", 0.0f, 0.0f, 0.8f);
-        lightingShader->setVec3("pointLights[2].specular", 0.0f, 0.0f, 1.0f);
-        lightingShader->setFloat("pointLights[2].constant", 1.0f);
-        lightingShader->setFloat("pointLights[2].linear", 0.09);
-        lightingShader->setFloat("pointLights[2].quadratic", 0.032);
-        // point light 4
-        lightingShader->setVec3("pointLights[3].position", pointLightPositions[3]);
-        lightingShader->setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-        lightingShader->setVec3("pointLights[3].diffuse", 0.0f, 0.0f, 0.8f);
-        lightingShader->setVec3("pointLights[3].specular", 0.0f, 0.0f, 1.0f);
-        lightingShader->setFloat("pointLights[3].constant", 1.0f);
-        lightingShader->setFloat("pointLights[3].linear", 0.09);
-        lightingShader->setFloat("pointLights[3].quadratic", 0.032);
+        for(int i = 0; i<4; i++){
+            stringstream ss;
+            ss<<i;
+            lightingShader->setVec3("pointLights[" + ss.str() + "].position", pointLightPositions[i]);
+            lightingShader->setVec3("pointLights[" + ss.str() + "].ambient", 0.05f, 0.05f, 0.05f);
+            lightingShader->setVec3("pointLights[" + ss.str() + "].diffuse", 0.8f, 0.8f, 0.8f);
+            lightingShader->setVec3("pointLights[" + ss.str() + "].specular", 0.0f, 0.0f, 1.0f);
+            lightingShader->setFloat("pointLights[" + ss.str() + "].constant", 1.0f);
+            lightingShader->setFloat("pointLights[" + ss.str() + "].linear", 0.09);
+            lightingShader->setFloat("pointLights[" + ss.str() + "].quadratic", 0.032);
+        }
+
 
         lightingShader->setVec3("spotLight.position", camera.Position);
         lightingShader->setVec3("spotLight.ambient", 0.05f, 0.05f, 0.05f);
@@ -497,7 +421,7 @@ int main(int argc, char** argv)
 
         lightingShader->setFloat("time", currentFrame);
 
-        model = glm::mat4();
+        model = glm::mat4(0.1);
 
 
         glEnable(GL_DEPTH_TEST);
@@ -507,28 +431,9 @@ int main(int argc, char** argv)
 
 
         model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
         lightingShader->setMat4("model", model);
-        planet.Draw(*lightingShader);
-
-//        // draw meteorites
-//        for(unsigned int i = 0; i < amount; i++)
-//        {
-//            lightingShader->setMat4("model", modelMatrices[i]);
-//            rock.Draw(*lightingShader);
-//        }
-        instanceShader->use();
-
-        instanceShader->setMat4("projection", projection);
-        instanceShader->setMat4("view", view);
-        for(unsigned int i = 0; i < rock.meshes.size(); i++)
-        {
-            glBindVertexArray(rock.meshes[i].VAO);
-            glDrawElementsInstanced(
-                    GL_TRIANGLES, rock.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount
-            );
-        }
-//        crysis_suit.Draw(*lightingShader);
+        lightingShader->setBool("blinn", blinn);
+        crysis_suit.Draw(*lightingShader);
 //        normalsShader->use();
 //        normalsShader->setMat4("view", view);
 //        normalsShader->setMat4("projection", projection);
@@ -614,6 +519,15 @@ void processInput(GLFWwindow *window)
         wires = !wires;
     }
 
+    if(glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+        blinn = !blinn;
+    if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
+        if(!gammaCorection)
+            glEnable(GL_FRAMEBUFFER_SRGB);
+        else
+            glDisable(GL_FRAMEBUFFER_SRGB);
+        gammaCorection = !gammaCorection;
+    }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -660,7 +574,7 @@ unsigned int loadCubemap(vector<std::string> faces ){
     for(unsigned int i=0; i<faces.size();i++){
         unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if(data){
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         } else{
             std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
         }
